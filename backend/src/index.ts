@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import connectDB from './utils/db';
 import authRoutes from './routes/auth.routes';
 import taskRoutes from './routes/task.routes';
@@ -35,10 +35,10 @@ export const io = new Server(httpServer, {
   },
 });
 
-io.on('connection', (socket) => {
+io.on('connection', (socket: Socket) => {
   console.log('New client connected:', socket.id);
 
-  socket.on('join:user', (userId) => {
+  socket.on('join:user', (userId: string) => {
     socket.join(userId);
     console.log(`Socket ${socket.id} joined room ${userId}`);
   });

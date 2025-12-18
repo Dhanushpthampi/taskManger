@@ -11,7 +11,7 @@ class TaskController {
       res.status(201).json(task);
     } catch (error) {
       if (error instanceof ZodError) {
-        return res.status(400).json({ errors: (error as ZodError).errors });
+        return res.status(400).json({ errors: error.issues });
       }
       res.status(500).json({ message: (error as Error).message });
     }
@@ -49,7 +49,7 @@ class TaskController {
       res.json(task);
     } catch (error) {
       if (error instanceof ZodError) {
-        return res.status(400).json({ errors: (error as ZodError).errors });
+        return res.status(400).json({ errors: error.issues });
       }
       res.status(500).json({ message: (error as Error).message });
     }

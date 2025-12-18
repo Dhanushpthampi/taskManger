@@ -10,6 +10,10 @@ class AuthRepository {
     return User.findById(id).select('-passwordHash');
   }
 
+  async findAllUsers(): Promise<IUser[]> {
+    return User.find().select('username email _id');
+  }
+
   async createUser(data: RegisterDTO, passwordHash: string): Promise<IUser> {
     const user = new User({
       username: data.username,

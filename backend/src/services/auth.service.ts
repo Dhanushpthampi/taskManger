@@ -15,7 +15,7 @@ class AuthService {
     const passwordHash = await bcrypt.hash(data.password, salt);
 
     const user = await AuthRepository.createUser(data, passwordHash);
-    return this.generateToken(user._id as string);
+    return this.generateToken(user._id as unknown as string);
   }
 
   async login(data: LoginDTO) {
@@ -29,11 +29,15 @@ class AuthService {
       throw new Error('Invalid credentials');
     }
 
-    return this.generateToken(user._id as string);
+    return this.generateToken(user._id as unknown as string);
   }
 
   async getUser(id: string) {
     return AuthRepository.findUserById(id);
+  }
+
+  async getAllUsers() {
+    return AuthRepository.findAllUsers();
   }
 
   private generateToken(userId: string): string {

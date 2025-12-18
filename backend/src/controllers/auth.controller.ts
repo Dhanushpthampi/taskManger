@@ -19,7 +19,7 @@ class AuthController {
       res.status(201).json({ message: 'User registered successfully' });
     } catch (error) {
       if (error instanceof ZodError) {
-        return res.status(400).json({ errors: error.errors });
+        return res.status(400).json({ errors: (error as ZodError).issues });
       }
       res.status(400).json({ message: (error as Error).message });
     }
@@ -40,7 +40,7 @@ class AuthController {
       res.status(200).json({ message: 'Logged in successfully' });
     } catch (error) {
       if (error instanceof ZodError) {
-        return res.status(400).json({ errors: error.errors });
+        return res.status(400).json({ errors: (error as ZodError).issues });
       }
       res.status(401).json({ message: (error as Error).message });
     }
@@ -58,6 +58,15 @@ class AuthController {
     try {
       const user = await AuthService.getUser(req.user as string);
       res.json(user);
+    } catch (error) {
+      res.status(500).json({ message: 'Server error' });
+    }
+  }
+
+  async getAllUsers(req: Request, res: Response) {
+    try {
+      const users = await AuthService.getAllUsers();
+      res.json(users);
     } catch (error) {
       res.status(500).json({ message: 'Server error' });
     }
