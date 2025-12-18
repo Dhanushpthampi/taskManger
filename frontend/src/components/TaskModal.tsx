@@ -13,6 +13,7 @@ const taskSchema = z.object({
   description: z.string().optional(),
   dueDate: z.string().min(1, 'Due date is required'),
   priority: z.enum(['Low', 'Medium', 'High', 'Urgent']),
+  status: z.enum(['To Do', 'In Progress', 'Review', 'Completed']),
   assignedToId: z.string().optional(), // We'll just input ID or email for now if no list
 });
 
@@ -29,6 +30,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, taskToEdi
     resolver: zodResolver(taskSchema),
     defaultValues: {
       priority: 'Medium',
+      status: 'To Do',
     }
   });
 
@@ -43,7 +45,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, taskToEdi
         assignedToId: taskToEdit.assignedToId?._id 
       });
     } else {
-      reset({ priority: 'Medium', title: '', description: '', dueDate: '' });
+      reset({ priority: 'Medium', status: 'To Do', title: '', description: '', dueDate: '' });
     }
   }, [taskToEdit, reset, isOpen]);
 

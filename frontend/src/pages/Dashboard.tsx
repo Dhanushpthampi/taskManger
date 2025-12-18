@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
+import axios from 'axios';
 import { useTasks, type Task } from '../hooks/useTasks';
 import { TaskCard } from '../components/TaskCard';
 import { TaskModal } from '../components/TaskModal';
@@ -21,6 +23,33 @@ export const Dashboard: React.FC = () => {
   const handleCreate = () => {
     setSelectedTask(undefined);
     setIsModalOpen(true);
+  };
+
+  const onDragEnd = async (result: DropResult) => {
+    const { destination, source, draggableId } = result;
+
+    if (!destination) return;
+
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      return;
+    }
+
+    const newStatus = destination.droppableId;
+    
+    // Optimistic update locally? 
+    // Ideally we update local state immediately, but since we rely on socket/refetch hooks, 
+    // let's just trigger the API. The socket event will update the UI. 
+    // If we want instant feedback we'd manually update 'tasks' state here too.
+    
+    try {
+      await axios.put(`/api/tasks/${draggableId}`, { status: newStatus }, { withCredentials: true });
+    } catch (error) {
+      console.error('Failed to update task status', error);
+      // maybe revert optimistic update if we did one
+    }
   };
 
   const filteredTasks = tasks.filter(t => {
@@ -59,28 +88,53 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 flex-1 overflow-x-auto pb-4">
-        {Object.entries(columns).map(([status, columnTasks]) => (
-          <div key={status} className="bg-gray-50 rounded-lg p-4 min-w-[280px]">
-             <h3 className="font-semibold text-gray-700 mb-3 flex items-center justify-between">
-               {status}
-               <span className="bg-gray-200 text-gray-600 px-2 rounded-full text-xs py-0.5">
-                 {columnTasks.length}
-               </span>
-             </h3>
-             <div className="space-y-3">
-               {columnTasks.map(task => (
-                 <TaskCard key={task._id} task={task} onClick={() => handleEdit(task)} />
-               ))}
-               {columnTasks.length === 0 && (
-                 <div className="text-center text-gray-400 text-sm py-4 border-2 border-dashed border-gray-200 rounded-lg">
-                   No tasks
-                 </div>
-               )}
-             </div>
-          </div>
-        ))}
-      </div>
+      <DragDropContext onDragEnd={onDragEnd}>
+        <div className="flex gap-4 overflow-x-auto pb-4 h-full"> 
+          {Object.entries(columns).map(([status, columnTasks]) => (
+            <Droppable key={status} droppableId={status}>
+              {(provided) => (
+                <div
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  className="bg-gray-50 rounded-lg p-4 min-w-[280px] w-full md:w-1/4 flex flex-col h-fit max-h-full"
+                >
+                  <h3 className="font-semibold text-gray-700 mb-3 flex items-center justify-between sticky top-0 bg-gray-50 z-10 p-1">
+                    {status}
+                    <span className="bg-gray-200 text-gray-600 px-2 rounded-full text-xs py-0.5">
+                      {columnTasks.length}
+                    </span>
+                  </h3>
+                  <div className="space-y-3 overflow-y-auto min-h-[50px]">
+                    {columnTasks.map((task, index) => (
+                      <Draggable key={task._id} draggableId={task._id} index={index}>
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            style={{
+                              ...provided.draggableProps.style,
+                              opacity: snapshot.isDragging ? 0.8 : 1,
+                            }}
+                          >
+                            <TaskCard task={task} onClick={() => handleEdit(task)} />
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                   {columnTasks.length === 0 && (
+                      <div className="text-center text-gray-400 text-sm py-4 border-2 border-dashed border-gray-200 rounded-lg">
+                        No tasks
+                      </div>
+                    )}
+                </div>
+              )}
+            </Droppable>
+          ))}
+        </div>
+      </DragDropContext>
 
       <TaskModal 
         isOpen={isModalOpen} 
