@@ -3,10 +3,10 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
-import { Server, Socket } from 'socket.io';
 import connectDB from './utils/db';
 import authRoutes from './routes/auth.routes';
 import taskRoutes from './routes/task.routes';
+import notificationRoutes from './routes/notification.routes';
 
 dotenv.config();
 
@@ -23,29 +23,19 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+import SocketService from './socket';
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Socket.io
-export const io = new Server(httpServer, {
+SocketService.init(httpServer, {
   cors: {
     origin: process.env.CLIENT_ORIGIN,
     credentials: true,
   },
-});
-
-io.on('connection', (socket: Socket) => {
-  console.log('New client connected:', socket.id);
-
-  socket.on('join:user', (userId: string) => {
-    socket.join(userId);
-    console.log(`Socket ${socket.id} joined room ${userId}`);
-  });
-
-  socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
-  });
 });
 
 const PORT = process.env.PORT || 5000;

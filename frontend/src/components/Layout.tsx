@@ -3,6 +3,7 @@ import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
 import { LogOut, LayoutDashboard } from 'lucide-react';
+import { NotificationBell } from './NotificationBell';
 
 export const Layout: React.FC = () => {
   const { user, logout } = useAuth();
@@ -21,9 +22,12 @@ export const Layout: React.FC = () => {
       <aside className="bg-white shadow-md md:w-64 flex flex-col">
         <div className="p-4 border-b flex items-center justify-between">
           <h1 className="text-xl font-bold text-blue-600">TaskMgr</h1>
-          <Button variant="ghost" size="sm" onClick={handleLogout} className="md:hidden">
-            <LogOut className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center space-x-2">
+            <NotificationBell />
+            <Button variant="ghost" size="sm" onClick={handleLogout} className="md:hidden">
+              <LogOut className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
         
         <nav className="flex-1 p-4 space-y-2">

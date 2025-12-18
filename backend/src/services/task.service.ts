@@ -1,14 +1,14 @@
 import TaskRepository from '../repositories/task.repo';
 import { CreateTaskDTO, UpdateTaskDTO } from '../dtos/task.dto';
-import { io } from '../index'; 
-import Notification from '../models/Notification'; 
+import SocketService from '../socket';
+import NotificationService from './notification.service'; 
 
 class TaskService {
   async createTask(userId: string, data: CreateTaskDTO) {
     const task = await TaskRepository.create({ ...data, creatorId: userId });
     
     // Notify all clients about new task (or just relevant ones, but for now broadcast)
-    io.emit('task:created', task);
+    SocketService.getIO().emit('task:created', task);
 
     // If assigned to someone else, notify them
     if (data.assignedToId && data.assignedToId !== userId) {
@@ -33,7 +33,7 @@ class TaskService {
     
     const updatedTask = await TaskRepository.update(id, data);
     
-    io.emit('task:updated', updatedTask);
+    SocketService.getIO().emit('task:updated', updatedTask);
 
     // Check for reassignment
     if (data.assignedToId && data.assignedToId !== task.assignedToId?.toString() && data.assignedToId !== userId) {
@@ -46,7 +46,7 @@ class TaskService {
   async deleteTask(id: string) {
     const deletedTask = await TaskRepository.delete(id);
     if (deletedTask) {
-        io.emit('task:deleted', id);
+        SocketService.getIO().emit('task:deleted', id);
     }
     return deletedTask;
   }
@@ -56,15 +56,11 @@ class TaskService {
   }
 
   private async notifyAssignee(userId: string, taskId: string, message: string) {
-    // Create persistent notification
-    await Notification.create({
-      recipientId: userId,
-      taskId,
-      message,
-    });
+    // Create persistent notification using service
+    await NotificationService.createNotification(userId, taskId, message);
 
     // Real-time socket event to specific user room
-    io.to(userId).emit('notification:new', { message, taskId });
+    SocketService.getIO().to(userId).emit('notification:new', { message, taskId });
   }
 }
 
