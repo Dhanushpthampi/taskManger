@@ -11,8 +11,8 @@ class AuthController {
 
       res.cookie('jwt', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV !== 'development',
-        sameSite: 'strict',
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
@@ -32,8 +32,8 @@ class AuthController {
 
       res.cookie('jwt', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV !== 'development',
-        sameSite: 'strict',
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
@@ -49,6 +49,8 @@ class AuthController {
   async logout(_req: Request, res: Response) {
     res.cookie('jwt', '', {
       httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
       expires: new Date(0),
     });
     res.status(200).json({ message: 'Logged out successfully' });
