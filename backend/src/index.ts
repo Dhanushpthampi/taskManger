@@ -15,9 +15,15 @@ connectDB();
 const app = express();
 const httpServer = createServer(app);
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://taskly-manager.vercel.app',
+  ...(process.env.CLIENT_ORIGIN ? [process.env.CLIENT_ORIGIN] : [])
+];
+
 // Middleware
 app.use(cors({
-  origin: process.env.CLIENT_ORIGIN,
+  origin: allowedOrigins,
   credentials: true,
 }));
 app.use(express.json());
@@ -33,7 +39,7 @@ app.use('/api/notifications', notificationRoutes);
 // Socket.io
 SocketService.init(httpServer, {
   cors: {
-    origin: process.env.CLIENT_ORIGIN,
+    origin: allowedOrigins,
     credentials: true,
   },
 });

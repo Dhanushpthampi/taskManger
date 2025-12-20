@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
 
+import { API_URL } from '../config';
+
 interface User {
   _id: string;
   username: string;
@@ -25,6 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   // Axios instance with credentials
   const api = axios.create({
+    baseURL: API_URL,
     headers: { 'Content-Type': 'application/json' },
     withCredentials: true // Important for HttpOnly cookies
   });

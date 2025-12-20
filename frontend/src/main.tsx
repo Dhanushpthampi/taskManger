@@ -6,6 +6,11 @@ import './index.css'
 import { AuthProvider } from './context/AuthContext.tsx'
 import { SocketProvider } from './context/SocketContext.tsx'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import axios from 'axios';
+import { API_URL } from './config';
+
+axios.defaults.baseURL = API_URL;
+axios.defaults.withCredentials = true;
 
 const queryClient = new QueryClient();
 
