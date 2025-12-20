@@ -7,6 +7,7 @@ export const CreateTaskSchema = z.object({
   dueDate: z.string().transform((str) => new Date(str)), // Accept string, convert to Date
   priority: z.nativeEnum(TaskPriority).optional(),
   assignedToId: z.string().optional(), // ObjectId as string
+  position: z.number().optional(),
 });
 
 export const UpdateTaskSchema = z.object({
@@ -16,6 +17,7 @@ export const UpdateTaskSchema = z.object({
   priority: z.nativeEnum(TaskPriority).optional(),
   status: z.enum(['To Do', 'In Progress', 'Review', 'Completed']).optional(),
   assignedToId: z.string().optional(),
+  position: z.number().optional(),
 });
 
 export type CreateTaskDTO = z.infer<typeof CreateTaskSchema>;

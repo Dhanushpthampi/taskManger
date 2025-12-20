@@ -34,7 +34,7 @@ class TaskRepository {
     if (filters.creatorId) query.creatorId = filters.creatorId;
 
     return Task.find(query)
-      .sort({ dueDate: 1 }) // Sort by due date ascending
+      .sort({ position: 1, dueDate: 1 }) // Sort by position then due date
       .populate('assignedToId', 'username email')
       .populate('creatorId', 'username email');
   }

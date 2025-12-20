@@ -35,7 +35,12 @@ export const Register: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-md">
-        <h2 className="text-3xl font-bold text-center text-gray-900">Create an account</h2>
+        <div className="text-center mb-8">
+           <img src="/tasky.png" alt="Tasky Logo" className="h-16 w-auto mx-auto mb-4" /> 
+           <h1 className="text-3xl font-bold text-gray-900">Tasky</h1>
+           <p className="mt-2 text-gray-600">Join thousands of users organizing their life with Tasky.</p>
+        </div>
+        <h2 className="text-xl font-bold text-center text-gray-900">Create an account</h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <Input
             label="Username"

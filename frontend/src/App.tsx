@@ -23,7 +23,8 @@ function App() {
       <Route path="/register" element={<Register />} />
       
       <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-        <Route index element={<Dashboard />} />
+        <Route index element={<Dashboard scope="all" />} />
+        <Route path="my-tasks" element={<Dashboard scope="my" />} />
       </Route>
     </Routes>
   );

@@ -4,6 +4,10 @@ import TaskService from '../services/task.service';
 import { CreateTaskSchema, UpdateTaskSchema } from '../dtos/task.dto';
 
 class TaskController {
+  /**
+   * Handles task creation request.
+   * @route POST /api/tasks
+   */
   async create(req: Request, res: Response) {
     try {
       const validatedData = CreateTaskSchema.parse(req.body);
@@ -17,6 +21,10 @@ class TaskController {
     }
   }
 
+  /**
+   * Retrieves tasks with optional filters.
+   * @route GET /api/tasks
+   */
   async getAll(req: Request, res: Response) {
     try {
       // Extract filters from query
@@ -33,6 +41,10 @@ class TaskController {
     }
   }
 
+  /**
+   * Retrieves a single task.
+   * @route GET /api/tasks/:id
+   */
   async getOne(req: Request, res: Response) {
     try {
       const task = await TaskService.getTask(req.params.id);
@@ -42,6 +54,10 @@ class TaskController {
     }
   }
 
+  /**
+   * Handles task update.
+   * @route PUT /api/tasks/:id
+   */
   async update(req: Request, res: Response) {
     try {
       const validatedData = UpdateTaskSchema.parse(req.body);
@@ -55,6 +71,10 @@ class TaskController {
     }
   }
 
+  /**
+   * Handles task deletion.
+   * @route DELETE /api/tasks/:id
+   */
   async delete(req: Request, res: Response) {
     try {
       await TaskService.deleteTask(req.params.id);

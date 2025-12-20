@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 import axios from 'axios';
 import { useSocket } from '../context/SocketContext';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 
 export interface Task {
@@ -12,44 +13,41 @@ export interface Task {
   status: 'To Do' | 'In Progress' | 'Review' | 'Completed';
   assignedToId?: { _id: string; username: string; email: string };
   creatorId: { _id: string; username: string; email: string };
+  position: number;
   createdAt: string;
 }
 
 export const useTasks = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const { socket } = useSocket();
-  // const { user } = useAuth();
 
-  const fetchTasks = useCallback(async () => {
-    try {
-      setLoading(true);
+  // Fetch tasks
+  const { data: tasks = [], isLoading: loading } = useQuery({
+    queryKey: ['tasks'],
+    queryFn: async () => {
       const res = await axios.get('/api/tasks', { withCredentials: true });
-      setTasks(res.data);
-    } catch (error) {
-      console.error('Failed to fetch tasks', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      return res.data;
+    },
+  });
 
-  useEffect(() => {
-    fetchTasks();
-  }, [fetchTasks]);
-
+  // Socket updates
   useEffect(() => {
     if (!socket) return;
 
     const handleTaskCreated = (newTask: Task) => {
-      setTasks((prev) => [newTask, ...prev]);
+      queryClient.setQueryData(['tasks'], (old: Task[] = []) => [newTask, ...old]);
     };
 
     const handleTaskUpdated = (updatedTask: Task) => {
-      setTasks((prev) => prev.map((t) => (t._id === updatedTask._id ? updatedTask : t)));
+       queryClient.setQueryData(['tasks'], (old: Task[] = []) => 
+         old.map((t) => (t._id === updatedTask._id ? updatedTask : t))
+       );
     };
 
     const handleTaskDeleted = (taskId: string) => {
-      setTasks((prev) => prev.filter((t) => t._id !== taskId));
+      queryClient.setQueryData(['tasks'], (old: Task[] = []) => 
+        old.filter((t) => t._id !== taskId)
+      );
     };
 
     socket.on('task:created', handleTaskCreated);
@@ -61,7 +59,38 @@ export const useTasks = () => {
       socket.off('task:updated', handleTaskUpdated);
       socket.off('task:deleted', handleTaskDeleted);
     };
-  }, [socket]);
+  }, [socket, queryClient]);
 
-  return { tasks, loading, fetchTasks };
+  // Mutation for updating task (Optimistic)
+  const updateTaskMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Task> }) => {
+      const res = await axios.put(`/api/tasks/${id}`, updates, { withCredentials: true });
+      return res.data;
+    },
+    onMutate: async ({ id, updates }) => {
+      await queryClient.cancelQueries({ queryKey: ['tasks'] });
+      const previousTasks = queryClient.getQueryData<Task[]>(['tasks']);
+
+      queryClient.setQueryData(['tasks'], (old: Task[] = []) => 
+        old.map((t) => (t._id === id ? { ...t, ...updates } : t))
+      );
+
+      return { previousTasks };
+    },
+    onError: (_err, _newTodo, context) => {
+      if (context?.previousTasks) {
+        queryClient.setQueryData(['tasks'], context.previousTasks);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    },
+  });
+
+  return { 
+    tasks, 
+    loading, 
+    updateTask: updateTaskMutation.mutate,
+    updateTaskAsync: updateTaskMutation.mutateAsync 
+  };
 };
