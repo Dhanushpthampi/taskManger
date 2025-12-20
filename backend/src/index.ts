@@ -15,6 +15,9 @@ connectDB();
 const app = express();
 const httpServer = createServer(app);
 
+// Trust proxy for secure cookies behind a reverse proxy (Render)
+app.set('trust proxy', 1);
+
 const allowedOrigins = [
   'http://localhost:5173',
   'https://taskly-manager.vercel.app',
